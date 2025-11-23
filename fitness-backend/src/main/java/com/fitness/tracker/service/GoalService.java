@@ -74,9 +74,22 @@ public class GoalService {
             throw new RuntimeException("Unauthorized access");
         }
         
+        if (progress == null) {
+            throw new IllegalArgumentException("Progress value cannot be null");
+        }
+        
+        if (progress < 0) {
+            throw new IllegalArgumentException("Progress value must be non-negative");
+        }
+        
         goal.setCurrentValue(progress);
+        
+        // Mark as completed if progress meets or exceeds target
         if (progress >= goal.getTargetValue()) {
             goal.setCompleted(true);
+        } else {
+            // Allow uncompleting if progress goes below target
+            goal.setCompleted(false);
         }
         
         return goalRepository.save(goal);

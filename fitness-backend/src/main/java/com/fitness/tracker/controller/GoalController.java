@@ -44,6 +44,12 @@ public class GoalController {
     public ResponseEntity<Goal> updateGoalProgress(@PathVariable Long id, 
                                                     @RequestBody Map<String, Integer> body) {
         Integer progress = body.get("progress");
+        if (progress == null) {
+            throw new IllegalArgumentException("Progress value is required");
+        }
+        if (progress < 0) {
+            throw new IllegalArgumentException("Progress value must be non-negative");
+        }
         return ResponseEntity.ok(goalService.updateGoalProgress(id, progress));
     }
     

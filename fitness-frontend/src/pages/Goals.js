@@ -50,18 +50,30 @@ function Goals() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert targetValue to integer before sending
+      const goalData = {
+        ...formData,
+        targetValue: parseInt(formData.targetValue)
+      };
+      
       if (editingId) {
-        await goalService.update(editingId, formData);
+        await goalService.update(editingId, goalData);
         setMessage('Goal updated successfully!');
+        resetForm();
+        // Fetch goals after a short delay to ensure backend has processed
+        setTimeout(() => fetchGoals(), 100);
       } else {
-        await goalService.create(formData);
+        await goalService.create(goalData);
         setMessage('Goal created successfully!');
+        resetForm();
+        setTimeout(() => fetchGoals(), 100);
       }
-      resetForm();
-      fetchGoals();
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage('Error saving goal');
+      console.error('Error details:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Error saving goal';
+      setMessage(errorMsg);
+      setTimeout(() => setMessage(''), 5000);
     }
   };
 
@@ -92,14 +104,24 @@ function Goals() {
 
   const handleUpdateProgress = async (id, currentValue, targetValue) => {
     const progress = prompt(`Update progress (current: ${currentValue}, target: ${targetValue}):`);
-    if (progress !== null) {
+    if (progress !== null && progress.trim() !== '') {
+      const progressValue = parseInt(progress);
+      if (isNaN(progressValue) || progressValue < 0) {
+        setMessage('Please enter a valid positive number');
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
       try {
-        await goalService.updateProgress(id, parseInt(progress));
-        setMessage('Progress updated!');
-        fetchGoals();
+        await goalService.updateProgress(id, progressValue);
+        setMessage('Progress updated successfully!');
+        // Fetch goals after a short delay to ensure backend has processed
+        setTimeout(() => fetchGoals(), 100);
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
-        setMessage('Error updating progress');
+        console.error('Error updating progress:', error);
+        const errorMsg = error.response?.data?.message || error.message || 'Error updating progress';
+        setMessage(errorMsg);
+        setTimeout(() => setMessage(''), 5000);
       }
     }
   };
@@ -127,7 +149,11 @@ function Goals() {
           </button>
         </div>
 
-        {message && <div className="success-message">{message}</div>}
+        {message && (
+          <div className={`success-message ${message.toLowerCase().includes('error') ? 'error' : ''}`}>
+            {message}
+          </div>
+        )}
 
         {showForm && (
           <div className="form-card">
