@@ -149,3 +149,4 @@ fitness-frontend/
 MIT License
 "# fitness-tracker" 
 "# fitness_tracker_project" 
+"# fitness_tracker_project" 
